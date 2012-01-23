@@ -406,10 +406,10 @@ class FileList {
             wfMsgForContent('fl_upload_file_anonymously') : wfMsgForContent('fl_upload_file');
         
         $output = '
-            <script>
+            <script type="text/javascript">
                 function fileListSubmit(){
                     form = document.filelistform;
-                    filename = form.wpUploadFile.value;
+                    filename = getNameFromPath(form.wpUploadFile.value);
                     if( filename == "" ) {
                         fileListError("'.wfMsgForContent('fl_empty_file').'");
                         return false;
@@ -419,6 +419,17 @@ class FileList {
                 }
                 function fileListError(message){
                     document.getElementById("filelist_error").innerHTML = message;
+                }
+                function getNameFromPath(strFilepath) {
+                    var objRE = new RegExp(/([^\/\\\\]+)$/);
+                    var strName = objRE.exec(strFilepath);
+                 
+                    if (strName == null) {
+                        return null;
+                    }
+                    else {
+                        return strName[0];
+                    }
                 }
             </script>
             <table class="wikitable" style="padding: 0; margin:0;"><tr><th>
