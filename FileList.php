@@ -15,6 +15,9 @@
 
 if (!defined('MEDIAWIKI')) die("Mediawiki not set");
 
+/****************** EXTENSION ACTIONS ******************/
+$wgExtensionMessagesFiles[ 'FileList' ] = __DIR__ . '/FileList.i18n.php';
+
 /****************** CHANGING GLOBAL SETTINGS ******************/
 /** Allow client-side caching of pages */
 $wgCachePages       = false;
@@ -80,27 +83,23 @@ $wgHooks['SpecialMovepageAfterMove'][] = 'fileListMovePage';
 $wgExtensionCredits['parserhook'][] = array(
     'name'           => 'FileList',
     'author'         => 'Jens Nyman (VTK Ghent)',
-	'descriptionmsg' => 'fl_credits_desc',
-	'url'            => 'http://www.mediawiki.org/wiki/Extension:FileList',
+    'descriptionmsg' => 'fl_credits_desc',
+    'url'            => 'http://www.mediawiki.org/wiki/Extension:FileList',
 );
 
 // internationalization file
 require_once( dirname(__FILE__) . '/FileList.i18n.php' );
 
 // functions
+require_once( dirname(__FILE__) . '/../common_library.php' );
 require_once( dirname(__FILE__) . '/library.php' );
 
+/****************** FUNCTIONS ******************/
 /**
  * Setup Medialist extension.
  * Sets a parser hook for <filelist/>.
  */
 function wfFileList() {
-    // Add messages
-    global $wgMessageCache, $FileListMessages;
-    foreach( $FileListMessages as $key => $value ) {
-        $wgMessageCache->addMessages($FileListMessages[$key], $key);
-    }
-
     new FileList();
 }
 
@@ -202,7 +201,7 @@ function fileListMovePage($form, $old_title, $new_title) {
     return true;
 }
 
-
+/****************** CLASSES ******************/
 class FileList {
     /**
      * Setup Medialist extension.
@@ -397,13 +396,14 @@ class FileList {
      * @return string
      */
     function outputForm($pageName) {
-        global $wgFileListConfig;
+        global $wgUser, $wgFileListConfig;
         
         $pageName = htmlentities($pageName);
         $prefix = htmlspecialchars(get_prefix_from_page_name($pageName));
         $form_action = htmlspecialchars(page_link_by_title('Special:Upload'));
         $upload_label = $wgFileListConfig['upload_anonymously'] ?
             wfMsgForContent('fl_upload_file_anonymously') : wfMsgForContent('fl_upload_file');
+        $user_token = $wgUser->getEditToken();
         
         $output = '
             <script type="text/javascript">
@@ -441,6 +441,7 @@ class FileList {
                 <input name="wpIgnoreWarning" type="hidden" value="1" />
                 <input type="hidden" value="Special:Upload" name="title" />
                 <input type="hidden" name="wpDestFileWarningAck" />
+                <input type="hidden" name="wpEditToken" value="'.$user_token.'" />
                 <input type="submit" value="'.$upload_label.'" name="wpUpload" title="Upload [s]" accesskey="s"
                     class="mw-htmlform-submit" onclick="return fileListSubmit()" />
             </form></th></tr></table><br />';

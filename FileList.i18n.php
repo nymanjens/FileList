@@ -8,9 +8,9 @@
  * 
  */
 
-$FileListMessages = array();
+$messages = array();
 
-$FileListMessages['en'] = array(
+$messages['en'] = array(
   // messages
   'fl_empty_list'              => 'This page doesn\'t have any files yet.',
   'fl_upload_file'             => 'Upload file',
@@ -29,7 +29,7 @@ $FileListMessages['en'] = array(
   'fl_credits_desc'            => 'Generates a dynamic file-list at the insertion of <code>&lt;filelist /&gt;</code>',
 );
 
-$FileListMessages['nl'] = array(
+$messages['nl'] = array(
   // messages
   'fl_empty_list'              => 'Deze pagina heeft nog geen bestanden.',
   'fl_upload_file'             => 'Bestand uploaden',
@@ -48,7 +48,7 @@ $FileListMessages['nl'] = array(
   'fl_credits_desc'            => 'Genereert dynamische file-lijst met uploadformulier bij het invoeren van <code>&lt;filelist /&gt;</code>',
 );
 
-$FileListMessages['fr'] = array(
+$messages['fr'] = array(
   // messages
   'fl_empty_list'              => 'Cette page n\'a pas de files.',
   'fl_upload_file'             => 'Téléverser un fichier',
@@ -67,7 +67,7 @@ $FileListMessages['fr'] = array(
   'fl_credits_desc'            => "Génère une fichier-liste dynamique à l'insertion de <code>&lt;filelist /&gt;</code>",
 );
 
-$FileListMessages['sv'] = array(
+$messages['sv'] = array(
   // messages
   'fl_empty_list'              => 'Sidan har inga filor än.',
   'fl_upload_file'             => 'Ladda up en fil',
