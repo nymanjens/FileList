@@ -2,7 +2,7 @@
 /**
  * Functions file
  * 
- * Author: Jens Nyman <nymanjens.nj@gmail.com> (VTK Ghent)
+ * Author: Jens Nyman <nymanjens.nj@gmail.com>
  * 
  */
 

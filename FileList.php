@@ -2,7 +2,7 @@
 /**
  * File List extension.
  *
- * Author: Jens Nyman <nymanjens.nj@gmail.com> (VTK Ghent)
+ * Author: Jens Nyman <nymanjens.nj@gmail.com>
  *
  * This extension implements a new tag, <filelist>, which generates a list of
  * all images or other media that was uploaded to the page. Also, the tag adds
@@ -82,7 +82,7 @@ $wgHooks['SpecialMovepageAfterMove'][] = 'fileListMovePage';
 // credits
 $wgExtensionCredits['parserhook'][] = array(
     'name'           => 'FileList',
-    'author'         => 'Jens Nyman (VTK Ghent)',
+    'author'         => 'Jens Nyman',
     'descriptionmsg' => 'fl_credits_desc',
     'url'            => 'http://www.mediawiki.org/wiki/Extension:FileList',
 );
@@ -167,7 +167,7 @@ function actionDeleteFile( $action, $article ) {
         return false;
     
     // delete file
-    $image = Image::newFromTitle($filename);
+    $image = wfFindFile($filename);
     $image->delete('FileList deletefile action');
     
     return false;

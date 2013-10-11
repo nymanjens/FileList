@@ -2,7 +2,7 @@
 /**
  * Download file
  * 
- * Author: Jens Nyman <nymanjens.nj@gmail.com> (VTK Ghent)
+ * Author: Jens Nyman <nymanjens.nj@gmail.com>
  * 
  */
 
@@ -20,7 +20,7 @@ $ext = file_get_extension($filename);
 
 // get url and path
 $image = wfFindFile($filename);
-$path = $image->getPath();
+$path = $image->getLocalRefPath();
 $url = $image->getUrl();
 
 if(!file_exists($path))
