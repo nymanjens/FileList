@@ -6,15 +6,13 @@
  * 
  */
 
-define('EXAM_STR', 'Examen_....-...._-_');
-
 /**
  * returns wether user is allowed to delete files
  * 
  * @param string $filename
  * @return bool
  */
-function this_user_is_allowed_to_delete($filename){
+function fl_this_user_is_allowed_to_delete($filename){
     global $wgUser, $wgFileListConfig;
 
     // apply everyone_can_delete_files setting if it is true
@@ -44,7 +42,7 @@ function this_user_is_allowed_to_delete($filename){
  * @version     0.3
  * @link        http://www.jonasjohn.de/snippets/php/readable-filesize.htm
  */
-function human_readable_filesize($size) {
+function fl_human_readable_filesize($size) {
  
     // Adapted from: http://www.php.net/manual/en/function.filesize.php
  
@@ -64,7 +62,7 @@ function human_readable_filesize($size) {
  * @param string $title
  * @return string
  */
-function page_link_by_title($title, $query = ''){
+function fl_page_link_by_title($title, $query = ''){
     $title = Title::newFromText($title);
     return $title->getFullURL($query);
 }
@@ -75,7 +73,7 @@ function page_link_by_title($title, $query = ''){
  * @param string $title
  * @return string
  */
-function get_index_url(){
+function fl_get_index_url(){
     $title = Title::newMainPage();
     return dirname($title->getFullURL("query=")) . '/';
 }
@@ -86,27 +84,27 @@ function get_index_url(){
  * @param int $time
  * @return string
  */
-function time_to_string($time){
+function fl_time_to_string($time){
     if(date('Y-m-d', $time) == date('Y-m-d') )
         return date("H:i", $time);
     if(date('z')-1 == date('z',$time) && date('Y') == date('Y',$time) )
-        return translate_time("Yesterday").", ".date("H:i", $time);
+        return fl_translate_time("Yesterday").", ".date("H:i", $time);
     if(date('z')-6 <= date('z',$time) && date('Y') == date('Y',$time) )
-        return translate_time(date("D", $time)) . date(", H:i", $time);
+        return fl_translate_time(date("D", $time)) . date(", H:i", $time);
     if(time() - $time < 60*60*24*50)
-        return translate_time(date("D", $time)) . date(", j ", $time) . strtolower(translate_time(date("M", $time)));
+        return fl_translate_time(date("D", $time)) . date(", j ", $time) . strtolower(fl_translate_time(date("M", $time)));
     if(date('y', $time) == date('y'))
-        return date("j ", $time) . strtolower(translate_time(date("M", $time))) . date(" 'y", $time);
-    return translate_time(date("M", $time)) . date(" 'y", $time);
+        return date("j ", $time) . strtolower(fl_translate_time(date("M", $time))) . date(" 'y", $time);
+    return fl_translate_time(date("M", $time)) . date(" 'y", $time);
 }
 
 /**
- * translate to Dutch (used for time_to_string)
+ * translate to Dutch (used for fl_time_to_string)
  *
  * @param string $word
  * @return string
  */
-function translate_time($word) {
+function fl_translate_time($word) {
     global $wgLanguageCode;
     $translate_array = array();
     $translate_array['nl'] = array(
@@ -184,61 +182,12 @@ function translate_time($word) {
 }
 
 /**
- * Dynamically edit or create a page without user interaction
- * 
- * Returns true if page already exists
- *
- * @param string $page_title
- * @param string $content
- * @param bool $update_if_exists
- * @param string $admin
- * @return bool
- */
-function edit_or_create_page($page_title, $content, $update_if_exists = true, $username = 'admin') {
-    global $wgDBprefix;
-    
-    // get dbkey of page
-    $title = Title::newFromText( $page_title );
-    $db_key = $title->getDBkey();
-    
-    // get all valid dbkeys
-    $db = wfGetDB ( DB_MASTER );
-    $results = $db->resultObject ( $db->query(
-        "select distinct page_title from {$wgDBprefix}page " )
-    );
-    $in_db = array();
-    while ( $r = $results->next() )
-        $in_db[] = $r->page_title;
-    
-    // Create a user object for the editing user and add it to the database
-    // if it is not there already
-    $editor = User::newFromName($username);
-    if ( !$editor->isLoggedIn() )
-        $editor->addToDatabase();
-
-    // if it does not exist, then create it here
-    $summary = "";
-    $article = new Article ( $title );
-
-    if ( !in_array( $db_key, $in_db ) ) {
-        $article->doEdit ( $content, $summary, EDIT_NEW, false, $editor );
-        return false;
-    } else if ($update_if_exists) {
-        $article->doEdit ( $content, $summary, EDIT_UPDATE, false, $editor );
-    } else {
-        echo "$page_title already exists and thereby, not altered<br>";
-    }
-    return true;
-}
-
-
-/**
  * get file extension
  * 
  * @param string $path
  * @return string
  */
-function file_get_extension($filepath) {
+function fl_file_get_extension($filepath) {
     preg_match('/[^?]*/', $filepath, $matches);
     $string = $matches[0];
     $pattern = preg_split('/\./', $string, -1, PREG_SPLIT_OFFSET_CAPTURE);
@@ -254,26 +203,12 @@ function file_get_extension($filepath) {
 }
 
 /**
- * pagename is exam page
- * 
- * @param string $pagename
- * @return bool
- */
-function pagename_is_exam_page($pagename) {
-    $pos = strpos($pagename, '_-_');
-    if($pos === false)
-        return false;
-    $exam_str = substr($pagename, $pos + strlen('_-_'), strlen(EXAM_STR));
-    return preg_match(sprintf("/^%s$/", EXAM_STR), $exam_str);
-}
-
-/**
  * list files of page
  * 
  * @param string $pagename
  * @return array
  */
-function list_files_of_page($pagename) {
+function fl_list_files_of_page($pagename) {
     // Query the database.
     $dbr =& wfGetDB(DB_SLAVE);
     $res = $dbr->select(
@@ -289,12 +224,11 @@ function list_files_of_page($pagename) {
 
     // Convert the results list into an array.
     $list = array();
-    $prefix = get_prefix_from_page_name($pagename);
-    $exam_page = pagename_is_exam_page($prefix);
+    $prefix = fl_get_prefix_from_page_name($pagename);
     while ($x = $dbr->fetchObject($res)) {
-        if( strtolower(substr($x->img_name, 0, strlen($prefix))) == strtolower($prefix))
-            if( $exam_page || !pagename_is_exam_page($x->img_name) ) // remove exam-files from non-exam pages
-                $list[] = $x;
+        if( strtolower(substr($x->img_name, 0, strlen($prefix))) == strtolower($prefix)) {
+            $list[] = $x;
+        }
     }
 
     // Free the results.
@@ -309,63 +243,11 @@ function list_files_of_page($pagename) {
  * @param string $pagename
  * @return string
  */
-function get_prefix_from_page_name($pageName) {
+function fl_get_prefix_from_page_name($pageName) {
     $pageName = str_replace(' ', '_', $pageName);
     return $pageName . '_-_';
 }
 
-/**
- * get last n years based upon current date
- * format: array('2007-2008', '2008-2009')
- * split: jan feb mrt apr mei jun jul aug sep | oct nov dec
- * 
- * @param int $n
- * @return array
- */
-function get_last_n_years($n) {
-    $current_start_year = date('Y');
-    if(date('m') > 9) // sem 1, nog voor de jaarovergang
-        ;// do nothing
-    else
-        $current_start_year--;
-    // generate array with $current_start_year
-    $years = array();
-    for($i = $n - 1; $i >= 0; $i--)
-        $years[] = sprintf("%s-%s", $current_start_year - $i, $current_start_year + 1 - $i);
-    return $years;
-}
-
-/**
- * get current year based upon current date
- * format: 2007-2008
- * split: jan feb mrt apr mei jun jul aug sep | oct nov dec
- * 
- * @return string
- */
-function get_current_year() {
-    $year_arr = get_last_n_years(1);
-    return $year_arr[0];
-}
-
-/**
- * return the url of the page without the request (like /forum/...)
- * 
- * @return string
- */
-function self_url_without_request(){
-    static $url = "";
-    if($url != "") return $url;
-    if(!function_exists('self_url_without_request_strleft')){
-    function self_url_without_request_strleft($s1, $s2){
-        return substr($s1, 0, strpos($s1, $s2));
-    }}
-    $s = empty($_SERVER["HTTPS"]) ? ''
-        : ($_SERVER["HTTPS"] == "on") ? "s"
-        : "";
-    $protocol = self_url_without_request_strleft(strtolower(
-        $_SERVER["SERVER_PROTOCOL"]), "/").$s;
-    $port = ($_SERVER["SERVER_PORT"] == "80") ? ""
-        : (":".$_SERVER["SERVER_PORT"]);
-    $url = $protocol."://".$_SERVER['SERVER_NAME'].$port;
-    return $url;
+function fl_strip_accents($stripAccents){
+    return trim(str_replace(array("'", "%", "?", "!", ":", ",", "*"), "", iconv("utf-8", "ascii//TRANSLIT", $stripAccents)));
 }

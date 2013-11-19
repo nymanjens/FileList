@@ -27,6 +27,7 @@ $messages['en'] = array(
   'fl_heading_datetime'        => 'Date',
   // credits
   'fl_credits_desc'            => 'Generates a dynamic file-list at the insertion of <code>&lt;filelist /&gt;</code>',
+  'fl_headings'                => 'File Attachments',
 );
 
 $messages['nl'] = array(
@@ -46,11 +47,12 @@ $messages['nl'] = array(
   'fl_heading_datetime'        => 'Datum',
   // credits
   'fl_credits_desc'            => 'Genereert dynamische file-lijst met uploadformulier bij het invoeren van <code>&lt;filelist /&gt;</code>',
+  'fl_headings'                => 'File Attachments',
 );
 
 $messages['fr'] = array(
   // messages
-  'fl_empty_list'              => 'Cette page n\'a pas de files.',
+  'fl_empty_list'              => 'Cette page n\'a pas de fichiers attachés.',
   'fl_upload_file'             => 'Téléverser un fichier',
   'fl_upload_file_anonymously' => 'Téléverser un fichier anonyme',
   'fl_empty_file'              => 'Sélectionnez un fichier s\'il vous plaît',
@@ -61,10 +63,11 @@ $messages['fr'] = array(
   'fl_heading_name'            => 'Nom',
   'fl_heading_descr'           => 'Commentaire',
   'fl_heading_user'            => 'Utilisateur',
-  'fl_heading_size'            => 'Dimension',
+  'fl_heading_size'            => 'Taille',
   'fl_heading_datetime'        => 'Date',
   // credits
   'fl_credits_desc'            => "Génère une fichier-liste dynamique à l'insertion de <code>&lt;filelist /&gt;</code>",
+  'fl_headings'                => 'Fichiers Attachés',
 );
 
 $messages['sv'] = array(
@@ -84,5 +87,6 @@ $messages['sv'] = array(
   'fl_heading_datetime'        => 'Datum',
   // credits
   'fl_credits_desc'            => 'Genererar en dynamisk file-list med uploadform när du skriver <code>&lt;filelist /&gt;</code>',
+  'fl_headings'                => 'File Attachments',
 );
 

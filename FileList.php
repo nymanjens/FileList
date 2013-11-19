@@ -25,11 +25,11 @@ $wgCacheEpoch = 'date +%Y%m%d%H%M%S';
 
 /** Set allowed extensions **/
 $wgFileExtensions = array(
-	'pdf','rar','zip','txt','7z','gz',
+	'pdf','rar','zip','txt','7z','gz','tgz',
 	'doc','ppt','xls',
 	'docx','pptx','xlsx',
 	'odt','odp','ods',
-	'mws', 'm', 'cad', 'dwg', 'java',
+	'mws', 'm', 'cad', 'dwg', 'java', 'sql',
 	'jpg','jpeg','gif','png',
 );
 $wgVerifyMimeType = false;
@@ -37,8 +37,10 @@ $wgVerifyMimeType = false;
 /****************** EXTENSION SETTINGS ******************/
 // configuration array of extension
 $wgFileListConfig = array(
-    'upload_anonymously' => false,
-    'everyone_can_delete_files' => true,
+    'everyone_can_delete_files' => true, // If false, only creator and admins can delete files
+    'add_title' => false, // If true, add title above filelist. Example: "== File Attachments =="
+    'ask_description' => false, // If true, the user is asked to fill in a description upon uploading a new file.
+    'upload_anonymously' => false, // if true, all user data is stripped from uploaded file
 );
 
 // extension on the left corresponds with a .gif icon on the right
@@ -48,6 +50,7 @@ $fileListCorrespondingImages = array(
     '7z' =>   'rar',
     'gz' =>   'rar',
     'zip' =>  'zip',
+	'tgz' =>  'zip',
     'txt' =>  'txt',
     'doc' =>  'doc',
     'docx' => 'doc',
@@ -114,9 +117,6 @@ function fileListUploadComplete($form){
     $pos = strpos($filename, '_-_');
     if($pos === false)
         return true;
-    // check if exam topic
-    if(pagename_is_exam_page($filename))
-        $pos += strlen(EXAM_STR);
     // get name
     $name = substr($filename, 0, $pos);
     $title = Title::newFromText($name);
@@ -163,7 +163,7 @@ function actionDeleteFile( $action, $article ) {
     $filename = $wgRequest->getVal('file');
     
     // is user allowed to delete?
-    if(!this_user_is_allowed_to_delete($filename))
+    if(!fl_this_user_is_allowed_to_delete($filename))
         return false;
     
     // delete file
@@ -183,9 +183,9 @@ function actionDeleteFile( $action, $article ) {
  */
 function fileListMovePage($form, $old_title, $new_title) {
     // get vars
-    $files = list_files_of_page($old_title);
-    $old_prefix = get_prefix_from_page_name($old_title);
-    $new_prefix = get_prefix_from_page_name($new_title);
+    $files = fl_list_files_of_page($old_title);
+    $old_prefix = fl_get_prefix_from_page_name($old_title);
+    $new_prefix = fl_get_prefix_from_page_name($new_title);
     // foreach file that matches prefix --> rename
     foreach($files as $file) {
         $new_fname = $new_prefix . substr($file->img_name, strlen($old_prefix));
@@ -220,19 +220,33 @@ class FileList {
      * @param Parser $parser
      */
     public function hookML($headline, $argv, $parser) {
+        global $wgFileListConfig;
+
+		$title = fl_strip_accents($parser->mTitle);
+
         // Get all files for this article
-        $articleFiles = list_files_of_page($parser->mTitle);
+        $articleFiles = fl_list_files_of_page($title);
+		
+        $output = '
+		<!-- FileList extension START -->
+		';
 
+		// FileList heading
+        if($wgFileListConfig['add_title']) {
+            $heading = "== ".wfMsgForContent('fl_headings')." ==";
+            $output .= $parser->recursiveTagParse($heading);
+        }
+		
         // Generate the media listing.
-        $output = $this->outputMedia($parser->mTitle, $articleFiles);
+        $output .= $this->outputMedia($title, $parser->mTitle, $articleFiles);
 
-        // Convert the listing wikitext into HTML and return it.
-        //$localParser = new Parser();
-        //$output = $localParser->parse($output, $parser->mTitle, $parser->mOptions);
-        //$output = $output->getText()
-        
         // Add form
-        $output .= $this->outputForm($parser->mTitle);
+        $output .= $this->outputForm($title);
+
+        $output .= '
+		<!-- FileList extension END -->
+		';
+        
         return $output;
     } // end of hookML
 
@@ -243,17 +257,18 @@ class FileList {
      * @param array $filelist
      * @return string
      */
-    function outputMedia($pageName, $filelist) {
+    function outputMedia($pageName, $mTitle, $filelist) {
         global $wgUser, $fileListCorrespondingImages, $wgFileListConfig;
         
         if( sizeof($filelist)  == 0 )
             return wfMsgForContent('fl_empty_list');
         
-        $prefix = htmlspecialchars(get_prefix_from_page_name($pageName));
-        $extension_folder_url = htmlspecialchars(get_index_url()) . 'extensions/' . basename(dirname(__FILE__)) . '/';
+        $prefix = htmlspecialchars(fl_get_prefix_from_page_name($pageName));
+        $extension_folder_url = htmlspecialchars(fl_get_index_url()) . 'extensions/' . basename(dirname(__FILE__)) . '/';
         $icon_folder_url = $extension_folder_url . 'icons/';
         
         $output = '';
+
         // style
         $output .= "<style>
                         /***** table ******/
@@ -303,7 +318,7 @@ class FileList {
                 break;
             }
         }
-        
+
         // table
         $output .= '<table class="wikitable">';
         $output .= '<tr>';
@@ -319,15 +334,15 @@ class FileList {
 
         foreach ($filelist as $dataobject) {
                 $output .= "<tr>";
-                /** ICON PROCESSING **/
-                $ext = file_get_extension($dataobject->img_name);
+                //  ICON PROCESSING 
+                $ext = fl_file_get_extension($dataobject->img_name);
                 if(isset($fileListCorrespondingImages[$ext]))
                     $ext_img = $fileListCorrespondingImages[$ext];
                 else
                     $ext_img = 'default';
                 $output .= '<td><img src="'.$icon_folder_url . $ext_img.'.gif" alt="" /> ';
-                
-                /** FILENAME PROCESSING**/
+
+                // FILENAME PROCESSING
                 $img_name = str_replace('_', ' ', $dataobject->img_name);
                 $img_name = substr($img_name, strlen($prefix));
                 $img_name_w_underscores = substr($dataobject->img_name, strlen($prefix));
@@ -338,16 +353,16 @@ class FileList {
                     $img_name = $descr;
                 $output .= '<a href="'.htmlspecialchars($link).'">'.htmlspecialchars($img_name).'</a></td>';
                 
-                /** TIME PROCESSING**/
+                // TIME PROCESSING
                 // converts (database-dependent) timestamp to unix format, which can be used in date()
                 $timestamp = wfTimestamp(TS_UNIX, $dataobject->img_timestamp);
-                $output .= '<td>' . time_to_string($timestamp) . "</td>";
+                $output .= '<td>' . fl_time_to_string($timestamp) . "</td>";
                 
-                /** SIZE PROCESSING **/
-                $size = human_readable_filesize($dataobject->img_size);
+                // SIZE PROCESSING
+                $size = fl_human_readable_filesize($dataobject->img_size);
                 $output .= "<td>$size</td>";
                 
-                /** DESCRIPTION **/
+                // DESCRIPTION
                 if($descr_column) {
                     $article = new Article ( Title::newFromText( 'File:'.$dataobject->img_name ) );
                     $descr = $article->getContent();
@@ -355,36 +370,37 @@ class FileList {
                     $output .= '<td>'.htmlspecialchars($descr).'</td>';
                 }
                 
-                /** USERNAME **/
+                // USERNAME
                 if(!$wgFileListConfig['upload_anonymously']) {
                     $output .= '<td>'.htmlspecialchars($dataobject->img_user_text).'</td>';
                 }
                 
-                /** EDIT AND DELETE **/
+                // EDIT AND DELETE
                 $output .= '<td><table class="noborder" cellspacing="2"><tr>';
                 // edit
                 $output .= sprintf('<td><acronym title="%s"><a href="%s" class="small_edit_button">' .
                                    '%s</a></acronym></td>',
                                    wfMsgForContent('fl_edit'),
-                                   htmlspecialchars(page_link_by_title('File:'.$dataobject->img_name)),
+                                   htmlspecialchars(fl_page_link_by_title('File:'.$dataobject->img_name)),
                                    wfMsgForContent('fl_edit'));
                 // delete
-                if(this_user_is_allowed_to_delete($dataobject->img_name))
+                if(fl_this_user_is_allowed_to_delete($dataobject->img_name))
                     $output .= sprintf('<td><acronym title="%s">' .
                                        '<a href="%s?file=%s&action=deletefile" class="small_remove_button" ' .
                                        'onclick="return confirm(\''.wfMsgForContent('fl_delete_confirm').'\')">' .
                                        '%s</a></acronym></td>',
                                        wfMsgForContent('fl_delete'),
-                                       htmlspecialchars($pageName->getFullURL()),
+                                       htmlspecialchars($mTitle->getFullURL()),
                                        htmlspecialchars(urlencode($dataobject->img_name)),
                                        htmlspecialchars($img_name),
                                        wfMsgForContent('fl_delete'));
-                $output .= '</tr></table></td>';
+                
+				$output .= '</tr></table></td>';
                 
                 $output .= "</tr>";
         }
         $output .= '</table>';
-        
+
         return $output;
     } // end of outputMedia
 
@@ -399,18 +415,18 @@ class FileList {
         global $wgUser, $wgFileListConfig;
         
         $pageName = htmlentities($pageName);
-        $prefix = htmlspecialchars(get_prefix_from_page_name($pageName));
-        $form_action = htmlspecialchars(page_link_by_title('Special:Upload'));
+        $prefix = htmlspecialchars(fl_get_prefix_from_page_name($pageName));
+        $form_action = htmlspecialchars(fl_page_link_by_title('Special:Upload'));
         $upload_label = $wgFileListConfig['upload_anonymously'] ?
             wfMsgForContent('fl_upload_file_anonymously') : wfMsgForContent('fl_upload_file');
         $user_token = $wgUser->getEditToken();
         
         $output = '
             <script type="text/javascript">
-                function fileListSubmit(){
+				function fileListSubmit(){
                     form = document.filelistform;
                     filename = getNameFromPath(form.wpUploadFile.value);
-                    if( filename == "" ) {
+                    if( filename == "" || filename == null) {
                         fileListError("'.wfMsgForContent('fl_empty_file').'");
                         return false;
                     }
@@ -432,19 +448,47 @@ class FileList {
                     }
                 }
             </script>
-            <table class="wikitable" style="padding: 0; margin:0;"><tr><th>
-                <div style="color: red;" id="filelist_error"></div>
-                <form action="'.$form_action.'" method="post" name="filelistform" class="visualClear" enctype="multipart/form-data" id="mw-upload-form">
-                <input name="wpUploadFile" type="file" />
-                <input name="wpDestFile" type="hidden" value="" />
-                <input name="wpWatchthis" type="hidden"/>
-                <input name="wpIgnoreWarning" type="hidden" value="1" />
-                <input type="hidden" value="Special:Upload" name="title" />
-                <input type="hidden" name="wpDestFileWarningAck" />
-                <input type="hidden" name="wpEditToken" value="'.$user_token.'" />
-                <input type="submit" value="'.$upload_label.'" name="wpUpload" title="Upload [s]" accesskey="s"
-                    class="mw-htmlform-submit" onclick="return fileListSubmit()" />
-            </form></th></tr></table><br />';
+			<form action="'.$form_action.'" method="post" name="filelistform" class="visualClear" enctype="multipart/form-data" id="mw-upload-form">
+				<div style="color: red;" id="filelist_error"></div>
+	            <table class="wikitable" style="padding: 0; margin: 0;">
+					<tr>
+						<td colspan="2" style="border: 0px;">
+				                <input name="wpUploadFile" type="file" />
+				                <input name="wpDestFile" type="hidden" value="" />
+				                <input name="wpWatchthis" type="hidden"/>
+				                <input name="wpIgnoreWarning" type="hidden" value="1" />
+				                <input type="hidden" value="Special:Upload" name="title" />
+				                <input type="hidden" name="wpDestFileWarningAck" />
+				                <input type="hidden" name="wpEditToken" value="'.$user_token.'" />';
+            if($wgFileListConfig['ask_description']) {
+                $output .= '
+						</td>
+					</tr>
+                    <tr>
+						<td valign="top" style="border: 0px;">
+				                <label for="wpUploadDescription">'.wfMsgForContent('fl_heading_descr').'</label>
+						</td>
+						<td style="padding-right: 1em; border: 0px;">
+				                <textarea name="wpUploadDescription" rows="4" cols="50"></textarea>
+						</td>
+					</tr>
+					<tr>
+						<td align="right" colspan="2" style="border: 0px;">
+				                <input type="submit" value="'.$upload_label.'" name="wpUpload" title="Upload [s]" accesskey="s"
+				                    class="mw-htmlform-submit" onclick="return fileListSubmit()" />
+						</td>';
+            } else {
+                $output .= '
+                        <td align="right" colspan="2" style="border: 0px;">
+                                <input type="submit" value="'.$upload_label.'" name="wpUpload" title="Upload [s]" accesskey="s"
+                                    class="mw-htmlform-submit" onclick="return fileListSubmit()" />
+                        </td>';
+            }
+            $output .= '
+					</tr>
+				</table>
+			</form>
+			<br />';
         
         // this is mandatory because parser interprets each whitespace at the start if a line
         $outputLines = explode("\n", $output);

@@ -16,7 +16,7 @@ if($wgRequest->getVal('file') == '')
 	die("Error: no file found");
 $filename = $wgRequest->getVal('file');
 $name = $wgRequest->getVal('name');
-$ext = file_get_extension($filename);
+$ext = fl_file_get_extension($filename);
 
 // get url and path
 $image = wfFindFile($filename);
