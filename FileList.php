@@ -38,6 +38,7 @@ $wgVerifyMimeType = false;
 // configuration array of extension
 $wgFileListConfig = array(
     'upload_anonymously' => false,
+    'everyone_can_delete_files' => true,
 );
 
 // extension on the left corresponds with a .gif icon on the right
@@ -91,7 +92,6 @@ $wgExtensionCredits['parserhook'][] = array(
 require_once( dirname(__FILE__) . '/FileList.i18n.php' );
 
 // functions
-require_once( dirname(__FILE__) . '/../common_library.php' );
 require_once( dirname(__FILE__) . '/library.php' );
 
 /****************** FUNCTIONS ******************/
