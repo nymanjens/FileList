@@ -90,3 +90,21 @@ $messages['sv'] = array(
   'fl_headings'                => 'File Attachments',
 );
 
+$FileListMessages['de'] = array(
+  // messages
+  'fl_empty_list'              => 'Diese Seite hat noch keine Dateianh&auml;nge.',
+  'fl_upload_file'             => 'Datei anh&auml;ngen',
+  'fl_upload_file_anonymously' => 'Datei anonym anh&auml;ngen',
+  'fl_empty_file'              => 'Datei w&auml;hlen',
+  'fl_edit'                    => "&Auml;ndern",
+  'fl_delete'                  => "L&ouml;schen",
+  'fl_delete_confirm'          => "Sind Sie sicher, dass Sie die Datei \'%s\' l&ouml;schen wollen ?",
+  // Table column headings
+  'fl_heading_name'            => 'Dateiname',
+  'fl_heading_descr'           => 'Beschreibung',
+  'fl_heading_user'            => 'Benutzer',
+  'fl_heading_size'            => 'Gr&ouml;&szlig;e',
+  'fl_heading_datetime'        => 'Datum',
+  // credits
+  'fl_credits_desc'            => 'Erzeugt eine dynamische Dateiliste bei Einf&uuml;gen von &lt;filelist /&gt;',
+);
