@@ -233,7 +233,7 @@ class FileList {
 
 		// FileList heading
         if($wgFileListConfig['add_title']) {
-            $heading = "== ".wfMsgForContent('fl_headings')." ==";
+            $heading = "== ".wfMessage('fl_headings')." ==";
             $output .= $parser->recursiveTagParse($heading);
         }
 		
@@ -261,7 +261,7 @@ class FileList {
         global $wgUser, $fileListCorrespondingImages, $wgFileListConfig;
         
         if( sizeof($filelist)  == 0 )
-            return wfMsgForContent('fl_empty_list');
+            return wfMessage('fl_empty_list');
         
         $prefix = htmlspecialchars(fl_get_prefix_from_page_name($pageName));
         $extension_folder_url = htmlspecialchars(fl_get_index_url()) . 'extensions/' . basename(dirname(__FILE__)) . '/';
@@ -312,23 +312,27 @@ class FileList {
         $descr_column = false;
         foreach ($filelist as $dataobject) {
             $article = new Article ( Title::newFromText( 'File:'.$dataobject->img_name ) );
-            $descr = $article->getContent();
-            if(trim($descr) != "") {
-                $descr_column = true;
-                break;
+            $revision = $article->getRevision();
+            if ($revision !== null) {
+                $content = $revision->getContent( Revision::RAW );
+                $descr = ContentHandler::getContentText( $content );
+                if(trim($descr) != "") {
+                    $descr_column = true;
+                    break;
+                }
             }
         }
 
         // table
         $output .= '<table class="wikitable">';
         $output .= '<tr>';
-        $output .= '<th style="text-align: left">' . wfMsgForContent('fl_heading_name') . '</th>';
-        $output .= '<th style="text-align: left">' . wfMsgForContent('fl_heading_datetime') . '</th>';
-        $output .= '<th style="text-align: left">' . wfMsgForContent('fl_heading_size') . '</th>';
+        $output .= '<th style="text-align: left">' . wfMessage('fl_heading_name') . '</th>';
+        $output .= '<th style="text-align: left">' . wfMessage('fl_heading_datetime') . '</th>';
+        $output .= '<th style="text-align: left">' . wfMessage('fl_heading_size') . '</th>';
         if($descr_column)
-            $output .= '<th style="text-align: left">' . wfMsgForContent('fl_heading_descr') . '</th>';
+            $output .= '<th style="text-align: left">' . wfMessage('fl_heading_descr') . '</th>';
         if(!$wgFileListConfig['upload_anonymously'])
-            $output .= '<th style="text-align: left">' . wfMsgForContent('fl_heading_user') . '</th>';
+            $output .= '<th style="text-align: left">' . wfMessage('fl_heading_user') . '</th>';
         $output .= '<th></th>';
         $output .= '</tr>';
 
@@ -365,7 +369,9 @@ class FileList {
                 // DESCRIPTION
                 if($descr_column) {
                     $article = new Article ( Title::newFromText( 'File:'.$dataobject->img_name ) );
-                    $descr = $article->getContent();
+                    $revision = $article->getRevision();
+                    $content = $revision->getContent( Revision::RAW );
+                    $descr = ContentHandler::getContentText( $content );
                     $descr = str_replace("\n", " ", $descr);
                     $output .= '<td>'.htmlspecialchars($descr).'</td>';
                 }
@@ -380,20 +386,20 @@ class FileList {
                 // edit
                 $output .= sprintf('<td><acronym title="%s"><a href="%s" class="small_edit_button">' .
                                    '%s</a></acronym></td>',
-                                   wfMsgForContent('fl_edit'),
+                                   wfMessage('fl_edit'),
                                    htmlspecialchars(fl_page_link_by_title('File:'.$dataobject->img_name)),
-                                   wfMsgForContent('fl_edit'));
+                                   wfMessage('fl_edit'));
                 // delete
                 if(fl_this_user_is_allowed_to_delete($dataobject->img_name))
                     $output .= sprintf('<td><acronym title="%s">' .
                                        '<a href="%s?file=%s&action=deletefile" class="small_remove_button" ' .
-                                       'onclick="return confirm(\''.wfMsgForContent('fl_delete_confirm').'\')">' .
+                                       'onclick="return confirm(\''.wfMessage('fl_delete_confirm').'\')">' .
                                        '%s</a></acronym></td>',
-                                       wfMsgForContent('fl_delete'),
+                                       wfMessage('fl_delete'),
                                        htmlspecialchars($mTitle->getFullURL()),
                                        htmlspecialchars(urlencode($dataobject->img_name)),
                                        htmlspecialchars($img_name),
-                                       wfMsgForContent('fl_delete'));
+                                       wfMessage('fl_delete'));
                 
 				$output .= '</tr></table></td>';
                 
@@ -418,7 +424,7 @@ class FileList {
         $prefix = htmlspecialchars(fl_get_prefix_from_page_name($pageName));
         $form_action = htmlspecialchars(fl_page_link_by_title('Special:Upload'));
         $upload_label = $wgFileListConfig['upload_anonymously'] ?
-            wfMsgForContent('fl_upload_file_anonymously') : wfMsgForContent('fl_upload_file');
+            wfMessage('fl_upload_file_anonymously') : wfMessage('fl_upload_file');
         $user_token = $wgUser->getEditToken();
         
         $output = '
@@ -427,7 +433,7 @@ class FileList {
                     form = document.filelistform;
                     filename = getNameFromPath(form.wpUploadFile.value);
                     if( filename == "" || filename == null) {
-                        fileListError("'.wfMsgForContent('fl_empty_file').'");
+                        fileListError("'.wfMessage('fl_empty_file').'");
                         return false;
                     }
                     form.wpDestFile.value = "'.$prefix.'" + filename;
@@ -466,7 +472,7 @@ class FileList {
 					</tr>
                     <tr>
 						<td valign="top" style="border: 0px;">
-				                <label for="wpUploadDescription">'.wfMsgForContent('fl_heading_descr').'</label>
+				                <label for="wpUploadDescription">'.wfMessage('fl_heading_descr').'</label>
 						</td>
 						<td style="padding-right: 1em; border: 0px;">
 				                <textarea name="wpUploadDescription" rows="4" cols="50"></textarea>

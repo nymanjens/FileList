@@ -210,7 +210,7 @@ function fl_file_get_extension($filepath) {
  */
 function fl_list_files_of_page($pagename) {
     // Query the database.
-    $dbr =& wfGetDB(DB_SLAVE);
+    $dbr = wfGetDB(DB_SLAVE);
     $res = $dbr->select(
         array('image'),
         array('img_name','img_media_type','img_user_text','img_description', 'img_size',
