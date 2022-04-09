@@ -15,6 +15,12 @@
 
 if (!defined('MEDIAWIKI')) die("Mediawiki not set");
 
+	
+/********** NAMESPACE USED **********/
+use MediaWiki\Revision\RevisionRecord;
+use MediaWiki\Revision\SlotRecord;
+use MediaWiki\MediaWikiServices;
+
 /****************** EXTENSION ACTIONS ******************/
 $wgExtensionMessagesFiles[ 'FileList' ] = __DIR__ . '/FileList.i18n.php';
 
@@ -208,8 +214,8 @@ class FileList {
      * Sets a parser hook for <filelist/>.
      */
     public function __construct() {
-        global $wgParser;
-        $wgParser->setHook('filelist', array(&$this, 'hookML'));
+        MediaWikiServices::getInstance()->getParser()->setHook('filelist', array(&$this, 'hookML'));	    
+ 
     } // end of constructor
 
     /**
@@ -312,9 +318,9 @@ class FileList {
         $descr_column = false;
         foreach ($filelist as $dataobject) {
             $article = new Article ( Title::newFromText( 'File:'.$dataobject->img_name ) );
-            $revision = $article->getRevision();
+            $revision = $article->fetchRevisionRecord();
             if ($revision !== null) {
-                $content = $revision->getContent( Revision::RAW );
+                $content = $revision->getContent( SlotRecord::MAIN );
                 $descr = ContentHandler::getContentText( $content );
                 if(trim($descr) != "") {
                     $descr_column = true;
@@ -352,7 +358,7 @@ class FileList {
                 $img_name_w_underscores = substr($dataobject->img_name, strlen($prefix));
                 $link = $extension_folder_url . 'file.php?name='.urlencode($img_name_w_underscores) . "&file=" . urlencode($dataobject->img_name);
                 // if description exists, use this as filename
-                $descr = $dataobject->img_description;
+                $descr = $dataobject->img_description_id;
                 if($descr)
                     $img_name = $descr;
                 $output .= '<a href="'.htmlspecialchars($link).'">'.htmlspecialchars($img_name).'</a></td>';
@@ -378,7 +384,7 @@ class FileList {
                 
                 // USERNAME
                 if(!$wgFileListConfig['upload_anonymously']) {
-                    $output .= '<td>'.htmlspecialchars($dataobject->img_user_text).'</td>';
+                    $output .= '<td>'.htmlspecialchars($dataobject->img_actor).'</td>';
                 }
                 
                 // EDIT AND DELETE
