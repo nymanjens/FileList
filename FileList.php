@@ -376,7 +376,7 @@ class FileList {
                 if($descr_column) {
                     $article = new Article ( Title::newFromText( 'File:'.$dataobject->img_name ) );
                     $revision = $article->getRevision();
-                    $content = $revision->getContent( Revision::RAW );
+                    $content = $revision->getContent( RevisionRecord::RAW );
                     $descr = ContentHandler::getContentText( $content );
                     $descr = str_replace("\n", " ", $descr);
                     $output .= '<td>'.htmlspecialchars($descr).'</td>';
